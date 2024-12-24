@@ -47,12 +47,52 @@ def create_main_script(base_path):
     main_script_content = '''"""
 Main script for the project.
 
-Author: Vijay Bari
+Author:
+-------
+- Owner: Vijay Bari
+
+Version:
+--------
+- 1.0.0 (2000-00-00)
+
+Change Log:
+-----------
+- Version 1.0.0 (2000-00-00): Initial implementation by Vijay Bari.
+
+Description:
+------------
+This script ...
+
+1. ...
+2. ...
+
+Usage:
+------
+1. ...
+
+Notes:
+------
+- ...
+- ...
 """
 
+import os
+from colorama import Fore, Style, init
+init() # Initialize colorama for cross-platform color support
+
+from scripts.utils.paths_utils import get_generic_paths, get_specific_paths
+
+
 def main():
-    """Entry point for the script."""
-    print("Hello, World!")
+    while True:
+        # Pass the current working directory as the root folder & Construct paths using the current directory
+        current_directory = os.getcwd()
+        generic_paths = get_generic_paths(current_directory)
+
+        # generic path constants
+        LOG_FOLDER = generic_paths["LOGS"]
+        INPUT_FOLDER = generic_paths["INPUT"]
+        TOOLS_FOLDER = generic_paths["TOOLS"]
 
 if __name__ == "__main__":
     main()
@@ -79,10 +119,54 @@ def copy_content(source, destination):
     except Exception as e:
         print(f"Failed to copy: {e}")
 '''
+    utils_path_content = '''from pathlib import Path
+
+def get_generic_paths(root_folder):
+    """
+    Returns a dictionary of generic paths relative to the provided root folder.
+    """
+    root_folder = Path(root_folder).resolve()
+
+    # Define generic paths
+    generic_paths = {
+        "ROOT": str(root_folder),
+        "CONFIG": str(root_folder / "config"),
+        "DOCS": str(root_folder / "docs"),
+        "INPUT": str(root_folder / "input"),
+        "LIBS": str(root_folder / "libs"),
+        "LOGS": str(root_folder / "logs"),
+        "SCRIPTS": str(root_folder / "scripts"),
+        "TOOLS": str(root_folder / "scripts" / "tools"),
+        "UTILS": str(root_folder / "scripts" / "utils"),
+        "TEMP": str(root_folder / "temp"),
+        "TESTS": str(root_folder / "tests"),
+        "THIRD_PARTY": str(root_folder / "third_party"),
+    }
+
+    return generic_paths
+
+
+def get_specific_paths(generic_paths):
+    """
+    Returns a dictionary of specific paths constructed using generic paths.
+    """
+    specific_paths = {
+        # Specific paths
+        "BM_BL_MERGER_TOOL": str(Path(generic_paths["THIRD_PARTY"]) / "50_Release" / "Generate_binFiles_for_DGUI_R8.bat"),
+        "TEMP_LOCAL": str(Path(generic_paths["TEMP"]) / "local"),
+        "TEMP_SVN": str(Path(generic_paths["TEMP"]) / "svn"),
+        "DELETE_SVN_FOLDERS_SCRIPT": str(Path(generic_paths["TOOLS"]) / "delete_svn_folders.bat"),
+        "LOG_FOLDER": generic_paths["LOGS"],  # Alias for generic path
+    }
+
+    return specific_paths'''
     
     utils_path = os.path.join(base_path, "scripts", "utils", "file_utils.py")
+    utils_path_1 = os.path.join(base_path,"scripts", "utils", "paths_utils.py")
     with open(utils_path, "w") as file:
         file.write(utils_script_content)
+    with open(utils_path_1, "w") as file:
+        file.write(utils_path_content)
 
 # Function to create a requirements.txt file
 def create_requirements_file(base_path):
@@ -155,6 +239,37 @@ See `CONTRIBUTING.md` for ways to get started.
     except Exception as e:
         return f"An error occurred while creating the README.md file: {e}"
 
+# add .gitkeep files in empty directories
+def add_gitkeep_files(base_path):
+    """
+    Generates .gitkeep files in the specified directory structure.
+
+    Args:
+        base_path (str): The base path where the folders exist.
+    """
+    folder_structure = {
+        "config": "config",
+        "docs": "docs",
+        "input": "input",
+        "libs": "libs",
+        "logs": "logs",
+        "scripts/tools": "scripts/tools",
+        "temp": "temp",
+        "tests": "tests",
+        "third_party": "third_party"
+    }
+
+    import os
+
+    for folder in folder_structure.values():
+        folder_path = os.path.join(base_path, folder)
+        os.makedirs(folder_path, exist_ok=True)
+        gitkeep_path = os.path.join(folder_path, ".gitkeep")
+        with open(gitkeep_path, "w") as gitkeep_file:
+            gitkeep_file.write("")
+
+    print(".gitkeep files have been generated in the specified folders.")
+
 
 # Main function to initialize the project
 def initialize_project(base_path):
@@ -163,6 +278,7 @@ def initialize_project(base_path):
     create_utils_scripts(base_path)
     create_requirements_file(base_path)
     create_readme_template(base_path)
+    add_gitkeep_files(base_path)
     print(f"Python project structure created at: {base_path}")
 
 
